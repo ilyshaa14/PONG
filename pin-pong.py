@@ -1,4 +1,11 @@
 import pygame
+import os
+
+
+image_files = os.listdir('sakura')
+
+sakura_frames = [pygame.image.load(f'sakura/{i}') for i in image_files]
+
 
 
 pygame.init()
@@ -11,24 +18,35 @@ class Game:
         self.SCENE = pygame.display.set_mode([self.scene_width, self.scene_height])
         self.name = name
 
+        self.sakura_frame_index = 0
+
         self.ball_width = 100
         self.ball_speed_x = 5
         self.ball_speed_y = 5
         self.ball = pygame.Rect(self.scene_width/2 - self.ball_width/2, self.scene_height/2 - self.ball_width/2, self.ball_width, self.ball_width)
         self.player = pygame.Rect(0 + 25, 0, 30, 100)
         self.enemy = pygame.Rect(self.scene_width - 30 - 25, 0, 30, 100)
+        self.enemy_ai_active = False
         self.running = True 
         self.fps = 60
         
     
         self.clock = pygame.time.Clock()
-        
+    def sakura_anim(self):
+        frame = sakura_frames[self.sakura_frame_index]
+        frame = pygame.transform.scale(frame, [frame.get_width() * 0.5, frame.get_height() * 0.5])
+        self.SCENE.blit(frame, [self.scene_width - frame.get_width(), self.scene_height - frame.get_height()])
+        self.sakura_frame_index += 1
+        if self.sakura_frame_index >= len(sakura_frames):
+            self.sakura_frame_index = 0
     def run(self):
         while self.running:
             self.clock.tick(self.fps)
             pygame.display.set_caption(f'{self.name} [{self.clock.get_fps():.1f}]')
 
-            self.SCENE.fill([90, 35, 80])
+            self.SCENE.fill([0, 0, 0])
+
+            self.sakura_anim()
 
            # print(self.ball.x)
 
@@ -67,16 +85,18 @@ class Game:
 
             pygame.draw.rect(self.SCENE, [66, 245, 239], self.enemy)
 
-            #if keys[pygame.K_o]:
-                #self.enemy.y -= 5
+            if keys[pygame.K_o]:
+                self.enemy.y -= 5
 
-            #if keys[pygame.K_l]:
-                #self.enemy.y += 5
+            if keys[pygame.K_l]:
+                self.enemy.y += 5
             
             if self.ball.colliderect(self.enemy):
                 self.ball_speed_x *= -1.1
             #AI
-            self.enemy.y = self.ball.y
+
+            if self.enemy_ai_active:
+                self.enemy.y = self.ball.y
             
             pygame.display.update()
 
@@ -85,6 +105,11 @@ class Game:
 
                 if event.type == pygame.QUIT:
                     self.running = False
+
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                       self.enemy_ai_active = not self.enemy_ai_active 
             
 
             
